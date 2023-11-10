@@ -8,6 +8,7 @@
 #include <vector>
 #include <optional>
 #include <stdexcept>
+#include <numeric>
 
 using namespace std;
 
@@ -89,10 +90,6 @@ public:
 
     void AddDocument(int document_id, const string& document, DocumentStatus status,
                                    const vector<int>& ratings) {
-        if(!IsValidWord(document)) {
-            throw invalid_argument("Invalid characters in the text");
-        }
-        
         if(document_id < 0){
             throw invalid_argument("Negative document index");
         }
@@ -101,11 +98,11 @@ public:
             throw invalid_argument("A document with such an index already exists");
         }
 
+        id_.push_back(document_id);
         const vector<string> words = SplitIntoWordsNoStop(document);
         const double inv_word_count = 1.0 / words.size();
         for (const string& word : words) {
             word_to_document_freqs_[word][document_id] += inv_word_count;
-
         }
         documents_.emplace(document_id, DocumentData{ComputeAverageRating(ratings), status});
 
@@ -121,11 +118,10 @@ public:
 
         sort(matched_documents.begin(), matched_documents.end(),
              [](const Document& lhs, const Document& rhs) {
-                 if (abs(lhs.relevance - rhs.relevance) < 1e-6) {
-                     return lhs.rating > rhs.rating;
-                 } else {
-                     return lhs.relevance > rhs.relevance;
-                 }
+                if (abs(lhs.relevance - rhs.relevance) < numeric_limits<double>::epsilon()) {
+                    return lhs.rating > rhs.rating;
+                }
+                    return lhs.relevance > rhs.relevance;
              });
         if (matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
             matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
@@ -179,7 +175,7 @@ public:
         if (index < 0 || index > static_cast<int>(documents_.size())) {
             throw out_of_range("The index is out of range");
         }
-        return next(documents_.begin(), index)->first;
+        return id_[index - 1];
     }
 
 private:
@@ -206,26 +202,27 @@ private:
     const set<string> stop_words_;
     map<string, map<int, double>> word_to_document_freqs_;
     map<int, DocumentData> documents_;
+    vector<int> id_;
 
     bool IsStopWord(const string& word) const {
         return stop_words_.count(word) > 0;
     }
 
-    static bool IsValidWord(const string& word) {\
-        for (int i = 0; i < word.size(); ++i)
-        {
-            
-            if (word[i] == '-' && word[i + 1] == '-') {
-                return false;
-            }
-            if (word[i] == '-' && i + 1 == word.size()) {
-                return false;
-            }
-            if (word[i] == '-' && word.size() == 1) {
-                return false;
+    static bool IsSpecialCharacters(const string& word) {
+        for (int i = 0; i < word.size(); ++i) { 
+            if (word[i] == '-' && word[i + 1] == '-') { 
+                return false; 
+            } 
+            if (word[i] == '-' && i + 1 == word.size()) { 
+                return false; 
+            } 
+            if (word[i] == '-' && word.size() == 1) { 
+                return false; 
             }
         }
+    }
 
+    static bool IsValidWord(const string& word) {
         // A valid word must not contain special characters
         return none_of(word.begin(), word.end(), [](char c) {
             return c >= '\0' && c < ' ';
@@ -235,10 +232,15 @@ private:
     vector<string> SplitIntoWordsNoStop(const string& text) const {
         vector<string> words;
         for (const string& word : SplitIntoWords(text)) {
+            if(!IsValidWord(word)) {
+                throw invalid_argument("Invalid characters in the text");
+            }
+
             if (!IsStopWord(word)) {
                 words.push_back(word);
             }
         }
+
         return words;
     }
 
@@ -246,11 +248,7 @@ private:
         if (ratings.empty()) {
             return 0;
         }
-        int rating_sum = 0;
-        for (const int rating : ratings) {
-            rating_sum += rating;
-        }
-        return rating_sum / static_cast<int>(ratings.size());
+        return accumulate(ratings.begin(), ratings.end(), 0) / static_cast<int>(ratings.size());
     }
 
     struct QueryWord {
@@ -266,6 +264,10 @@ private:
             is_minus = true;
             text = text.substr(1);
         }
+        if (!IsSpecialCharacters(text)) {
+            throw invalid_argument("Invalid characters in the text");
+        }
+
         return {text, is_minus, IsStopWord(text)};
     }
 
