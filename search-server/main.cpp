@@ -75,8 +75,6 @@ enum class DocumentStatus {
 class SearchServer {
 public:
 
-    inline static constexpr int INVALID_DOCUMENT_ID = -1;
-
     template <typename StringContainer>
     explicit SearchServer(const StringContainer& stop_words)
         : stop_words_(MakeUniqueNonEmptyStrings(stop_words)) {
@@ -175,12 +173,12 @@ public:
         if (index < 0 || index > static_cast<int>(documents_.size())) {
             throw out_of_range("The index is out of range");
         }
-        return id_[index - 1];
+        return id_.at(index);
     }
 
 private:
     struct DocumentData {
-        int rating;
+        int rating;;
         DocumentStatus status;
     };
 
@@ -264,6 +262,11 @@ private:
             is_minus = true;
             text = text.substr(1);
         }
+        
+        if(!IsValidWord(text)) {
+            throw invalid_argument("Invalid characters in the text");
+        }
+
         if (!IsSpecialCharacters(text)) {
             throw invalid_argument("Invalid characters in the text");
         }
