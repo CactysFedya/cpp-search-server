@@ -11,6 +11,7 @@
 #include "document.h"
 #include "string_processing.h"
 
+using namespace std::string_literals;
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 
 enum class DocumentStatus {
@@ -27,7 +28,7 @@ public:
         : stop_words_(MakeUniqueNonEmptyStrings(stop_words))  
     {
         if (!all_of(stop_words_.begin(), stop_words_.end(), IsValidWord)) {
-            throw std::invalid_argument("Some of stop words are invalid");
+            throw std::invalid_argument("Some of stop words are invalid"s);
         }
     }
 

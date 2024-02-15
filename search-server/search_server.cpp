@@ -1,4 +1,5 @@
 #include "search_server.h"
+using namespace std::string_literals;
 
 SearchServer::SearchServer(const std::string& stop_words_text)
     : SearchServer(SplitIntoWords(stop_words_text))  {}
@@ -6,7 +7,7 @@ SearchServer::SearchServer(const std::string& stop_words_text)
 void SearchServer::AddDocument(int document_id, const std::string& document, DocumentStatus status,
                     const std::vector<int>& ratings) {
     if ((document_id < 0) || (documents_.count(document_id) > 0)) {
-        throw std::invalid_argument("Invalid document_id");
+        throw std::invalid_argument("Invalid document_id"s);
     }
     const auto words = SplitIntoWordsNoStop(document);
 

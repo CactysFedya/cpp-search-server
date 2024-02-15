@@ -1,5 +1,5 @@
 #include "document.h"
-
+using namespace std::string_literals;
 Document::Document(int id, double relevance, int rating) 
         : id(id)
         , relevance(relevance)
@@ -7,6 +7,6 @@ Document::Document(int id, double relevance, int rating)
 }
 
 std::ostream& operator<<(std::ostream& out, const Document& doc){
-    out << "{ document_id = " << doc.id << ", relevance = " << doc.relevance << ", rating = " << doc.rating << " }";
+    out << "{ document_id = "s << doc.id << ", relevance = "s << doc.relevance << ", rating = "s << doc.rating << " }"s;
     return out; 
-};
+}

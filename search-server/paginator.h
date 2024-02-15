@@ -2,11 +2,6 @@
 #include <vector>
 #include <algorithm>
 
-template <typename Container>
-auto Paginate(const Container& c, size_t page_size) {
-    return Paginator(begin(c), end(c), page_size);
-}
-
 template <typename Iterator>
 class IteratorRange{
 public:
@@ -51,9 +46,14 @@ private:
 };
 
 template <typename DocumentIterator>
-std::ostream& std::operator<<(std::ostream& out, const IteratorRange<DocumentIterator> range){
+std::ostream& operator<<(std::ostream& out, const IteratorRange<DocumentIterator> range){
     for (auto it = range.begin(); it != range.end(); ++it){
         out << *it;
     }
     return out;
-};
+}
+
+template <typename Container>
+auto Paginate(const Container& c, size_t page_size) {
+    return Paginator(begin(c), end(c), page_size);
+}
