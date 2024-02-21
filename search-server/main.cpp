@@ -2,9 +2,6 @@
 
 #include "search_server.h"
 #include "request_queue.h"
-#include "string_processing.h"
-#include "document.h"
-#include "paginator.h"
 
 using namespace std::string_literals;
 
